@@ -1,5 +1,8 @@
 import * as http from "node:http";
 import * as url from "node:url";
+import * as string_decoder from "node:string_decoder";
+
+const StringDecoder = string_decoder.StringDecoder;
 
 const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url, true);
@@ -15,9 +18,20 @@ const server = http.createServer((req, res) => {
     // Get headres
     const headers = req.headers;
 
-    console.log(headers);
+    const decoder = new StringDecoder("utf-8");
+    
+    let buffer = "";
 
-    res.end("Hello world");
+    req.on("data", (data) => {
+        buffer += decoder.write(data);
+    });
+
+    req.on("end", () => {
+        buffer += decoder.end();
+        res.end("Hello world");
+        console.log(buffer);
+    });
+
 });
 
 server.listen(3000, () => {
