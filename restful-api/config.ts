@@ -10,7 +10,7 @@ const enviornments = {
         httpPort: 5000,
         httpsPort: 5001,
         envName: "production",
-        hashingSecret: "thisIsABetterSecret"
+        hashingSecret: "thisIsAGreatSecret"
     }
 };
 
