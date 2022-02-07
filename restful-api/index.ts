@@ -1,10 +1,36 @@
+import * as fs from "node:fs";
 import * as http from "node:http";
+import * as https from "node:https";
 import * as url from "node:url";
 import * as string_decoder from "node:string_decoder";
+import handlers from "./lib/handlers";
+import helpers from "./lib/helpers";
+import envToExport from "./config";
 
 const StringDecoder = string_decoder.StringDecoder;
 
-const server = http.createServer((req, res) => {
+const httpServer = http.createServer((req, res) => {
+    unifiedServer(req, res);
+});
+
+httpServer.listen(envToExport.httpPort, () => {
+    console.log("Serving listenting on port", envToExport.httpPort);
+});
+
+const httpsServerOptions = {
+    key: fs.readFileSync("./https/key.pem"),
+    cert: fs.readFileSync("./https/cert.pem")
+};
+
+const httpsServer = https.createServer(httpsServerOptions, (req, res) => {
+    unifiedServer(req, res);
+});
+
+httpsServer.listen(envToExport.httpsPort, () => {
+    console.log("Serving listenting on port", envToExport.httpsPort);
+});
+
+const unifiedServer = (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
     const trimmedPath = path.replace(/^\/+|\/+$/g, "");
@@ -28,12 +54,30 @@ const server = http.createServer((req, res) => {
 
     req.on("end", () => {
         buffer += decoder.end();
-        res.end("Hello world");
-        console.log(buffer);
+        const chosenHandler = typeof(router[trimmedPath]) ? router[trimmedPath] : handlers.notFound;
+
+        const data = {
+            trimmedPath,
+            queryStringObj,
+            method,
+            headers,
+            payload: helpers.parseJsonToObject(buffer)
+        }
+
+        chosenHandler(data, (statusCode, payload) => {
+            statusCode = typeof(statusCode) === "number" ? statusCode : 200;
+            payload = typeof(payload) === "object" ? payload : {};
+
+            const payloadStr = JSON.stringify(payload);
+            res.setHeader("Content-Type", "application/json");
+            res.writeHead(statusCode);
+            res.end(payloadStr);
+
+            console.log("Res is", statusCode, payloadStr);
+        });
     });
+};
 
-});
-
-server.listen(3000, () => {
-    console.log("Serving listenting on port 3000");
-});
+const router = {
+    "ping": handlers.ping
+};

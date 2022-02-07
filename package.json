@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "git": "git init && git status && git add . && git commit -m $MSG && git push"  },
+    "git": "git init && git status && git add . && git commit -m $MSG && git push"  
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/stevedoesitall/node-master-class.git"
