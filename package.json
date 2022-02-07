@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "git": "git init && git status && git add . && git commit -m $MSG && git push"  
+    "commit": "git init && git status && git add . && git commit -m $MSG && git push"  
   },
   "repository": {
     "type": "git",
